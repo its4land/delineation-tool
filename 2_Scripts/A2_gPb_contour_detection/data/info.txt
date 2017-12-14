@@ -1,0 +1,1 @@
+Copy here your UAV images (RGB and/or DSM) as .tif files and their .tfw files.
