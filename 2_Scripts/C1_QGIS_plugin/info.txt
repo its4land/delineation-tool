@@ -1,0 +1,2 @@
+Please find info and scripts on this workflow part in the following GitHub folder:
+https://github.com/SCrommelinck/BoundaryDelineation
