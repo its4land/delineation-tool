@@ -1,5 +1,4 @@
-# Delineation-Tool
-Contains documentation and scirpts for the boundary delineation tool developed for its4land combining gPb contour detection, SLIC superpixel, Random Forest classification and a QGIS plugin.
+This repository provides source code and guidance to implement a boundary delineation tool developed for its4land combining gPb contour detection, SLIC superpixel, Random Forest classification and a QGIS plugin.
 
 The tool is designed to support the semi-automatic delineation of visible cadastral boundaries from UAV data. The delineation tool combines the output from gPb contour detection and SLIC superpixels based on random forest classification. The subsequent interactive delineation is managed with the QGIS BoundaryDelineation plugin (https://github.com/SCrommelinck/BoundaryDelineation) This repository containts scripts and info on the other workflow parts and on the workflow as a whole.
 
