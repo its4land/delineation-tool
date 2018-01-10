@@ -16,7 +16,7 @@ QGIS Version: QGIS 2.16
 """
 # add directory with script to Python search path
 import sys
-sys.path.append(r"D:\0_ITC\03_its4land_PhD\04_Research_objectives\5_RO2d_Delineation_v2\2_Implementation\1_Scripts\#new")
+sys.path.append(r"D:\path to script")
 
 #import module
 import A6_SLIC_attributes
@@ -26,13 +26,13 @@ reload(A6_SLIC_attributes)
 """
 
 ### Predefine variables ###
-input_dir = r"D:\0_ITC\03_its4land_PhD\04_Research_objectives\5_RO2d_Delineation_v2\2_Implementation\2_Input_Data\1_Amtsvenn\2_Amtsvenn_ref_clip"
+input_dir = r"D:\path to directory"
 SLIC_l = input_dir + r"\SLIC_lines.shp"
 gPb = input_dir + r"\gPb_centerlines.shp"
 ucm_RGB = input_dir + r"\ucm.tif"
 RGB = input_dir + r"\RGB.tif"
 DSM = input_dir + r"\DSM.tif"
-output_dir = r"D:\0_ITC\03_its4land_PhD\04_Research_objectives\5_RO2d_Delineation_v2\2_Implementation\3_Output_Data\1_Amtsvenn\1_SLIC_Attributes\new"
+output_dir = r"D:\path to directory"
 
 ### Attributes calculated in this script ###
 """
