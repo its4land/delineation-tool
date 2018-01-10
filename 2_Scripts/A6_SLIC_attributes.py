@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 !/bin/python
 -*- coding: utf-8 -*
@@ -9,13 +10,13 @@ QGIS Version: QGIS 2.16
 ### Description ###
  This script calculates attributes per SLIC line by taking into account information of each line’s geometry and
  topology as well as information from the UAV data (RGB and DSM) and the ucm and gPb maps.
- """
+"""
 
 ### Import script in QGIS Python console ###
 """
 # add directory with script to Python search path
 import sys
-sys.path.append(r"D:\path to script")
+sys.path.append(r"D:\0_ITC\03_its4land_PhD\04_Research_objectives\5_RO2d_Delineation_v2\2_Implementation\1_Scripts\#new")
 
 #import module
 import A6_SLIC_attributes
@@ -25,19 +26,17 @@ reload(A6_SLIC_attributes)
 """
 
 ### Predefine variables ###
-input_dir = r"D:\path to directory"
+input_dir = r"D:\0_ITC\03_its4land_PhD\04_Research_objectives\5_RO2d_Delineation_v2\2_Implementation\2_Input_Data\1_Amtsvenn\2_Amtsvenn_ref_clip"
 SLIC_l = input_dir + r"\SLIC_lines.shp"
 gPb = input_dir + r"\gPb_centerlines.shp"
 ucm_RGB = input_dir + r"\ucm.tif"
-lap_DSM = input_dir + r"\DSM_lap.tif"
 RGB = input_dir + r"\RGB.tif"
 DSM = input_dir + r"\DSM.tif"
-output_dir = r"D:\path to directory"
+output_dir = r"D:\0_ITC\03_its4land_PhD\04_Research_objectives\5_RO2d_Delineation_v2\2_Implementation\3_Output_Data\1_Amtsvenn\1_SLIC_Attributes\new"
 
 ### Attributes calculated in this script ###
 """
 ID:                 unique number per SLIC segment        
-
 
 length [m]:         length per SLIC segment along the line
 
@@ -103,7 +102,7 @@ os.chdir(output_dir)
 # gPb
 gPb_vlayer = QgsVectorLayer(gPb, "gPb_vlayer", "ogr")
 if not gPb_vlayer.isValid():
-  print "--> ERROR: gPb layer failed to load."
+    print "--> ERROR: gPb layer failed to load."
 else:
     print "--> gPb layer successfully loaded.\n"
 
@@ -112,18 +111,9 @@ fileInfo = QFileInfo(ucm_RGB)
 baseName = fileInfo.baseName()
 ucm_RGB_rlayer = QgsRasterLayer(ucm_RGB, baseName)
 if not ucm_RGB_rlayer.isValid():
-  print "--> ERROR: ucm RGB layer failed to load."
+    print "--> ERROR: ucm RGB layer failed to load."
 else:
     print "--> ucm RGB layer successfully loaded.\n"
-
-# lap_DSM
-fileInfo = QFileInfo(lap_DSM)
-baseName = fileInfo.baseName()
-lap_DSM_rlayer = QgsRasterLayer(lap_DSM, baseName)
-if not lap_DSM_rlayer.isValid():
-  print "--> ERROR: lap DSM layer failed to load."
-else:
-    print "--> lap DSM layer successfully loaded.\n"
 
 # RGB
 fileInfo = QFileInfo(RGB)
@@ -157,9 +147,6 @@ xmax = extent.xMaximum()
 ymin = extent.yMinimum()
 ymax = extent.yMaximum()
 
-############################
-### Length of SLIC lines ###
-############################
 # Add ID per line segment
 bpol_ID = os.getcwd() + r"\1_SLIC_bpol_ID.shp"
 if not os.path.isfile(bpol_ID):
@@ -182,7 +169,7 @@ if not os.path.isfile(bpol_length):
                       {"INPUT_LAYER": bpol_ID,
                        "FIELD_NAME": "length",
                        "FIELD_TYPE": 0,
-                       "FORMULA": '$length',
+                       "FORMULA": 'length($geometry)',
                        "NEW_FIELD": True,
                        "OUTPUT_LAYER": bpol_length})
     print "--> Calculate length per line segment.\n"
@@ -208,10 +195,10 @@ if not os.path.isfile(SLIC_ucm_RGB):
                       {"TARGET": bpol_length,
                        "JOIN": ucm_RGB_points,
                        "PREDICATE": u'intersects',
-                       "PRECISION": 1,              # searches for all points in a 1m radius
-                       "SUMMARY": 1,                # takes the summary (=avg?) of all points in the radius
+                       "PRECISION": 1,  # searches for all points in a 1m radius
+                       "SUMMARY": 1,  # takes the summary (=avg?) of all points in the radius
                        "STATS": 'median',
-                       "KEEP": 1,                   # all records are kept
+                       "KEEP": 1,  # all records are kept
                        "OUTPUT": SLIC_ucm_RGB})
     print "--> Joined attributes by location.\n"
 
@@ -221,30 +208,53 @@ with edit(layer):
     idx = layer.fieldNameIndex('medianvalu')
     layer.renameAttribute(idx, 'ucm_rgb')
 
+#####################################
+### Apply Laplacian filter on DSM ###
+#####################################
+lap_DSM = os.getcwd() + r"\5_lap_DSM.tif"
+if not os.path.isfile(lap_DSM):
+    processing.runalg('saga:laplacianfilter',
+                      {"INPUT": DSM_rlayer,
+                       "METHOD": 0,
+                       "RADIUS": 1,
+                       "SIGMA": 0,
+                       "MODE": 0,
+                       "RESULT": lap_DSM})
+    print "--> Laplacian filter applied to DSM.\n"
+
+# Normalize filtered DSM
+lap_DSM_normalized = os.getcwd() + r"\6_lap_DSM_normalized.tif"
+if not os.path.isfile(lap_DSM_normalized):
+    processing.runalg('saga:gridnormalisation',
+                      {"INPUT": lap_DSM,
+                       "RANGE_MIN": 0,
+                       "RANGE_MAX": 1,
+                       "OUTPUT": lap_DSM_normalized})
+    print "--> Normalized Laplacian filtered DSM.\n"
+
 ######################################
 ### Median value of DSM_lap raster ###
 ######################################
-lap_DSM_points = os.getcwd() + r"\5_lap_DSM_points.shp"
+lap_DSM_points = os.getcwd() + r"\7_lap_DSM_points.shp"
 if not os.path.isfile(lap_DSM_points):
     processing.runalg('grass7:r.to.vect',
-                      {"input": lap_DSM_rlayer,
+                      {"input": lap_DSM_normalized,
                        "type": 1,
                        "GRASS_REGION_PARAMETER": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
                        "GRASS_OUTPUT_TYPE_PARAMETER": 1,
                        "output": lap_DSM_points})
     print "--> Laplacian DSM raster converted to point vector.\n"
 
-
-SLIC_lap_DSM = os.getcwd() + r"\6_SLIC_lap_DSM.shp"
+SLIC_lap_DSM = os.getcwd() + r"\8_SLIC_lap_DSM.shp"
 if not os.path.isfile(SLIC_lap_DSM):
     processing.runalg('qgis:joinattributesbylocation',
                       {"TARGET": SLIC_ucm_RGB,
                        "JOIN": lap_DSM_points,
                        "PREDICATE": u'intersects',
-                       "PRECISION": 1,              # searches for all points in a 1m radius
-                       "SUMMARY": 1,                # takes the summary (=avg?) of all points in the radius
+                       "PRECISION": 1,  # searches for all points in a 1m radius
+                       "SUMMARY": 1,  # takes the summary (=avg?) of all points in the radius
                        "STATS": 'median',
-                       "KEEP": 1,                   # all records are kept
+                       "KEEP": 1,  # all records are kept
                        "OUTPUT": SLIC_lap_DSM})
     print "--> Joined attributes by location.\n"
 
@@ -258,7 +268,7 @@ with edit(layer):
 ### Distance to gPb line ###
 ############################
 # Add distance column to SLIC lines (type: float, precision = 2)
-SLIC_update = os.getcwd() + r"\7_SLIC_update.shp"
+SLIC_update = os.getcwd() + r"\9_SLIC_update.shp"
 if not os.path.isfile(SLIC_update):
     processing.runalg('qgis:addfieldtoattributestable',
                       {"INPUT_LAYER": SLIC_lap_DSM,
@@ -271,24 +281,24 @@ if not os.path.isfile(SLIC_update):
 
 #########################################################
 # Calculate distance to gPb line
-dist2gPb = os.getcwd() + r"\8_dist2gPb.shp"
+dist2gPb = os.getcwd() + r"\10_dist2gPb.shp"
 if not os.path.isfile(dist2gPb):
     processing.runalg('grass7:v.distance',
-                        {"from": SLIC_update,
-                        "to": gPb_vlayer,
-                        "dmax": '-1',
-                        "dmin": '-1',
-                        "upload": 'dist',
-                        "column": 'dist',
-                        "GRASS_REGION_PARAMETER": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "from_output": dist2gPb})
+                      {"from": SLIC_update,
+                       "to": gPb_vlayer,
+                       "dmax": '-1',
+                       "dmin": '-1',
+                       "upload": 'dist',
+                       "column": 'dist',
+                       "GRASS_REGION_PARAMETER": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "from_output": dist2gPb})
     print "--> Added distance column to SLIC lines.\n"
 
 #########################################################
 ### SLIC line characteristics (azimuth and sinuosity) ###
 #########################################################
 # Calculate azimuth per line segment
-SLIC_azimuth = os.getcwd() + r"\9_SLIC_azimuth.shp"
+SLIC_azimuth = os.getcwd() + r"\11_SLIC_azimuth.shp"
 if not os.path.isfile(SLIC_azimuth):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": dist2gPb,
@@ -304,7 +314,7 @@ if not os.path.isfile(SLIC_azimuth):
     print "--> Calculated azimuth per line segment.\n"
 # source: https://gis.stackexchange.com/questions/24260/how-to-add-direction-and-distance-to-attribute-table/24430#24430
 # Azimuth and sinuosity can also be added via GRASS -> v.to.db map= option=sinuous,azimuth columns=sinuous,
-    # azimuth (algorithmm v.to.db not availabe in QGIS processing)
+# azimuth (algorithmm v.to.db not availabe in QGIS processing)
 
 #########################################################
 # Load layer for feature selection
@@ -328,7 +338,7 @@ print "--> Filtered out unwanted line segments.\n"
 layer.invertSelection()
 
 # Save selected features
-SLIC_filtered = os.getcwd() + r"\10_SLIC_filtered.shp"
+SLIC_filtered = os.getcwd() + r"\12_SLIC_filtered.shp"
 if not os.path.isfile(SLIC_filtered):
     processing.runalg('qgis:saveselectedfeatures',
                       {"INPUT_LAYER": SLIC_azimuth,
@@ -340,13 +350,13 @@ QgsMapLayerRegistry.instance().removeMapLayers([layer.id()])
 
 #########################################################
 # Calculate sinuosity per line segment
-SLIC_sinuosity = os.getcwd() + r"\11_SLIC_sinuosity.shp"
+SLIC_sinuosity = os.getcwd() + r"\13_SLIC_sinuosity.shp"
 if not os.path.isfile(SLIC_sinuosity):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": SLIC_filtered,
                        "FIELD_NAME": "sinuosity",
                        "FIELD_TYPE": 0,
-                       "FORMULA": '"length" / sqrt((xat(-1) - xat(0))^2 + (yat(-1) - yat(0))^2)',
+                       "FORMULA": 'length($geometry)/distance(start_point($geometry), end_point($geometry))',
                        "NEW_FIELD": True,
                        "OUTPUT_LAYER": SLIC_sinuosity})
     print "--> Calculated azimuth per line segment.\n"
@@ -356,7 +366,7 @@ if not os.path.isfile(SLIC_sinuosity):
 ####################################
 # Calculate azimuth per gPb line segment
 # #?# might be an option to break the gPb vector line layer before into smaller segments
-gPb_azimuth = os.getcwd() + r"\12_gPb_azimuth.shp"
+gPb_azimuth = os.getcwd() + r"\14_gPb_azimuth.shp"
 if not os.path.isfile(gPb_azimuth):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": gPb_vlayer,
@@ -372,7 +382,7 @@ if not os.path.isfile(gPb_azimuth):
     print "--> Calculated azimuth per gPb line segment.\n"
 
 # Add azimuth column to SLIC lines (type: float, precision = 3)
-SLIC_gPB_azimuth = os.getcwd() + r"\13_SLIC_gPB_azimuth.shp"
+SLIC_gPB_azimuth = os.getcwd() + r"\15_SLIC_gPB_azimuth.shp"
 if not os.path.isfile(SLIC_gPB_azimuth):
     processing.runalg('qgis:addfieldtoattributestable',
                       {"INPUT_LAYER": SLIC_sinuosity,
@@ -384,94 +394,94 @@ if not os.path.isfile(SLIC_gPB_azimuth):
     print "--> Added azimuth_gPb column to SLIC lines.\n"
 
 # Append azimuth of gPb line to closest SLIC line
-SLIC_gPB_azimuth_update = os.getcwd() + r"\14_SLIC_gPB_azimuth_update.shp"
+SLIC_gPB_azimuth_update = os.getcwd() + r"\16_SLIC_gPB_azimuth_update.shp"
 if not os.path.isfile(SLIC_gPB_azimuth_update):
     processing.runalg('grass7:v.distance',
-                        {"from": SLIC_gPB_azimuth,
-                        "to": gPb_azimuth,
-                        "dmax": '-1',
-                        "dmin": '-1',
-                        "upload": 'to_attr',
-                        "column": 'azi_gPb',
-                        "to_column": 'azimuth',
-                        "GRASS_REGION_PARAMETER": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "from_output": SLIC_gPB_azimuth_update})
+                      {"from": SLIC_gPB_azimuth,
+                       "to": gPb_azimuth,
+                       "dmax": '-1',
+                       "dmin": '-1',
+                       "upload": 'to_attr',
+                       "column": 'azi_gPb',
+                       "to_column": 'azimuth',
+                       "GRASS_REGION_PARAMETER": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "from_output": SLIC_gPB_azimuth_update})
     print "--> Added azimuth of gPb line to closest SLIC lines.\n"
 
 ####################################################
 ### DSM values left and right of each SLIC line  ###
 ####################################################
 # Create one-sided buffer (left/right) of 0.2m for each SLIC line
-SLIC_rside_buffer = os.getcwd() + r"\15_SLIC_rside_buffer.shp"
+SLIC_rside_buffer = os.getcwd() + r"\17_SLIC_rside_buffer.shp"
 if not os.path.isfile(SLIC_rside_buffer):
     processing.runalg('gdalogr:singlesidedbuffersandoffsetlinesforlines',
-                        {"INPUT_LAYER": SLIC_gPB_azimuth_update,
-                        "OPERATION": 0,
-                        "GEOMETRY": 'geometry',
-                        "RADIUS": 0.2,
-                        "LEFTRIGHT": 0,
-                        "DISSOLVEALL": False,
-                        "FIELD": None,
-                        "MULTI": False,
-                        "OUTPUT_LAYER": SLIC_rside_buffer})
+                      {"INPUT_LAYER": SLIC_gPB_azimuth_update,
+                       "OPERATION": 0,
+                       "GEOMETRY": 'geometry',
+                       "RADIUS": 0.2,
+                       "LEFTRIGHT": 0,
+                       "DISSOLVEALL": False,
+                       "FIELD": None,
+                       "MULTI": False,
+                       "OUTPUT_LAYER": SLIC_rside_buffer})
     print "--> Added one-sided buffer (right) of 0.2m to SLIC lines.\n"
 
-SLIC_lside_buffer = os.getcwd() + r"\16_SLIC_lside_buffer.shp"
+SLIC_lside_buffer = os.getcwd() + r"\18_SLIC_lside_buffer.shp"
 if not os.path.isfile(SLIC_lside_buffer):
     processing.runalg('gdalogr:singlesidedbuffersandoffsetlinesforlines',
-                        {"INPUT_LAYER": SLIC_gPB_azimuth_update,
-                        "OPERATION": 0,
-                        "GEOMETRY": 'geometry',
-                        "RADIUS": 0.2,
-                        "LEFTRIGHT": 1,
-                        "DISSOLVEALL": False,
-                        "FIELD": None,
-                        "MULTI": False,
-                        "OUTPUT_LAYER": SLIC_lside_buffer})
+                      {"INPUT_LAYER": SLIC_gPB_azimuth_update,
+                       "OPERATION": 0,
+                       "GEOMETRY": 'geometry',
+                       "RADIUS": 0.2,
+                       "LEFTRIGHT": 1,
+                       "DISSOLVEALL": False,
+                       "FIELD": None,
+                       "MULTI": False,
+                       "OUTPUT_LAYER": SLIC_lside_buffer})
     print "--> Added one-sided buffer (left) of 0.2m to SLIC lines.\n"
 
 # Calculate zonal statistics per buffer (left/right)
-rbuffer_stats = os.getcwd() + r"\17_rbuffer_stats.shp"
+rbuffer_stats = os.getcwd() + r"\19_rbuffer_stats.shp"
 if not os.path.isfile(rbuffer_stats):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": DSM_rlayer,
-                        "RASTER_BAND": 1,
-                        "INPUT_VECTOR": SLIC_rside_buffer,
-                        "COLUMN_PREFIX": 'r_dsm_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": rbuffer_stats})
+                      {"INPUT_RASTER": DSM_rlayer,
+                       "RASTER_BAND": 1,
+                       "INPUT_VECTOR": SLIC_rside_buffer,
+                       "COLUMN_PREFIX": 'r_dsm_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": rbuffer_stats})
     print "--> Calculated zonal statistics for one-sided buffer (right).\n"
 
-lbuffer_stats = os.getcwd() + r"\18_lbuffer_stats.shp"
+lbuffer_stats = os.getcwd() + r"\20_lbuffer_stats.shp"
 if not os.path.isfile(lbuffer_stats):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": DSM_rlayer,
-                        "RASTER_BAND": 1,
-                        "INPUT_VECTOR": SLIC_lside_buffer,
-                        "COLUMN_PREFIX": 'l_dsm_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": lbuffer_stats})
+                      {"INPUT_RASTER": DSM_rlayer,
+                       "RASTER_BAND": 1,
+                       "INPUT_VECTOR": SLIC_lside_buffer,
+                       "COLUMN_PREFIX": 'l_dsm_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": lbuffer_stats})
     print "--> Calculated zonal statistics for one-sided buffer (left).\n"
 
 # Join attribute table of buffer statistics with SLIC lines
-SLIC_rbuffer_stats = os.getcwd() + r"\19_SLIC_rbuffer_stats.shp"
+SLIC_rbuffer_stats = os.getcwd() + r"\21_SLIC_rbuffer_stats.shp"
 if not os.path.isfile(SLIC_rbuffer_stats):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_gPB_azimuth_update,
-                        "INPUT_LAYER_2": rbuffer_stats,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER": SLIC_rbuffer_stats})
+                      {"INPUT_LAYER": SLIC_gPB_azimuth_update,
+                       "INPUT_LAYER_2": rbuffer_stats,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_rbuffer_stats})
     print "--> Join attribute table of buffer statistics (right) with SLIC lines.\n"
 
-SLIC_lbuffer_stats = os.getcwd() + r"\20_SLIC_lbuffer_stats.shp"
+SLIC_lbuffer_stats = os.getcwd() + r"\22_SLIC_lbuffer_stats.shp"
 if not os.path.isfile(SLIC_lbuffer_stats):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_rbuffer_stats,
-                        "INPUT_LAYER_2": lbuffer_stats,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER": SLIC_lbuffer_stats})
+                      {"INPUT_LAYER": SLIC_rbuffer_stats,
+                       "INPUT_LAYER_2": lbuffer_stats,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_lbuffer_stats})
     print "--> Join attribute table of buffer statistics (left) with SLIC lines.\n"
 
 ####################################################
@@ -479,72 +489,72 @@ if not os.path.isfile(SLIC_lbuffer_stats):
 ####################################################
 # Calculate zonal statistics per buffer (left/right)
 # red
-rbuffer_stats_red = os.getcwd() + r"\21_rbuffer_stats_red.shp"
+rbuffer_stats_red = os.getcwd() + r"\23_rbuffer_stats_red.shp"
 if not os.path.isfile(rbuffer_stats_red):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": RGB_rlayer,
-                        "RASTER_BAND": 1,
-                        "INPUT_VECTOR": SLIC_rside_buffer,
-                        "COLUMN_PREFIX": 'r_red_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": rbuffer_stats_red})
+                      {"INPUT_RASTER": RGB_rlayer,
+                       "RASTER_BAND": 1,
+                       "INPUT_VECTOR": SLIC_rside_buffer,
+                       "COLUMN_PREFIX": 'r_red_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": rbuffer_stats_red})
     print "--> Calculated zonal statistics for one-sided buffer (right).\n"
 
-lbuffer_stats_red = os.getcwd() + r"\22_lbuffer_stats_red.shp"
+lbuffer_stats_red = os.getcwd() + r"\24_lbuffer_stats_red.shp"
 if not os.path.isfile(lbuffer_stats_red):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": RGB_rlayer,
-                        "RASTER_BAND": 1,
-                        "INPUT_VECTOR": SLIC_lside_buffer,
-                        "COLUMN_PREFIX": 'l_red_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": lbuffer_stats_red})
+                      {"INPUT_RASTER": RGB_rlayer,
+                       "RASTER_BAND": 1,
+                       "INPUT_VECTOR": SLIC_lside_buffer,
+                       "COLUMN_PREFIX": 'l_red_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": lbuffer_stats_red})
     print "--> Calculated zonal statistics for one-sided buffer (left).\n"
 
 # green
-rbuffer_stats_green = os.getcwd() + r"\23_rbuffer_stats_green.shp"
+rbuffer_stats_green = os.getcwd() + r"\25_rbuffer_stats_green.shp"
 if not os.path.isfile(rbuffer_stats_green):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": RGB_rlayer,
-                        "RASTER_BAND": 2,
-                        "INPUT_VECTOR": SLIC_rside_buffer,
-                        "COLUMN_PREFIX": 'r_gre_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": rbuffer_stats_green})
+                      {"INPUT_RASTER": RGB_rlayer,
+                       "RASTER_BAND": 2,
+                       "INPUT_VECTOR": SLIC_rside_buffer,
+                       "COLUMN_PREFIX": 'r_gre_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": rbuffer_stats_green})
     print "--> Calculated zonal statistics for one-sided buffer (right).\n"
 
-lbuffer_stats_green = os.getcwd() + r"\24_lbuffer_stats_green.shp"
+lbuffer_stats_green = os.getcwd() + r"\26_lbuffer_stats_green.shp"
 if not os.path.isfile(lbuffer_stats_green):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": RGB_rlayer,
-                        "RASTER_BAND": 2,
-                        "INPUT_VECTOR": SLIC_lside_buffer,
-                        "COLUMN_PREFIX": 'l_gre_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": lbuffer_stats_green})
+                      {"INPUT_RASTER": RGB_rlayer,
+                       "RASTER_BAND": 2,
+                       "INPUT_VECTOR": SLIC_lside_buffer,
+                       "COLUMN_PREFIX": 'l_gre_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": lbuffer_stats_green})
     print "--> Calculated zonal statistics for one-sided buffer (left).\n"
 
 # blue
-rbuffer_stats_blue = os.getcwd() + r"\25_rbuffer_stats_blue.shp"
+rbuffer_stats_blue = os.getcwd() + r"\27_rbuffer_stats_blue.shp"
 if not os.path.isfile(rbuffer_stats_blue):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": RGB_rlayer,
-                        "RASTER_BAND": 3,
-                        "INPUT_VECTOR": SLIC_rside_buffer,
-                        "COLUMN_PREFIX": 'r_blu_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": rbuffer_stats_blue})
+                      {"INPUT_RASTER": RGB_rlayer,
+                       "RASTER_BAND": 3,
+                       "INPUT_VECTOR": SLIC_rside_buffer,
+                       "COLUMN_PREFIX": 'r_blu_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": rbuffer_stats_blue})
     print "--> Calculated zonal statistics for one-sided buffer (right).\n"
 
-lbuffer_stats_blue = os.getcwd() + r"\26_lbuffer_stats_blue.shp"
+lbuffer_stats_blue = os.getcwd() + r"\28_lbuffer_stats_blue.shp"
 if not os.path.isfile(lbuffer_stats_blue):
     processing.runalg('qgis:zonalstatistics',
-                        {"INPUT_RASTER": RGB_rlayer,
-                        "RASTER_BAND": 3,
-                        "INPUT_VECTOR": SLIC_lside_buffer,
-                        "COLUMN_PREFIX": 'l_blu_',
-                        "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
-                        "OUTPUT_LAYER": lbuffer_stats_blue})
+                      {"INPUT_RASTER": RGB_rlayer,
+                       "RASTER_BAND": 3,
+                       "INPUT_VECTOR": SLIC_lside_buffer,
+                       "COLUMN_PREFIX": 'l_blu_',
+                       "GLOBAL_EXTENT": "%f,%f,%f,%f" % (xmin, xmax, ymin, ymax),
+                       "OUTPUT_LAYER": lbuffer_stats_blue})
     print "--> Calculated zonal statistics for one-sided buffer (left).\n"
 
 # Delete unwanted fields in attribute table
@@ -564,72 +574,72 @@ print "--> Columns deleted.\n"
 
 # Join attribute table of buffer statistics with SLIC lines
 # red
-SLIC_rbuffer_stats_red = os.getcwd() + r"\27_SLIC_rbuffer_stats_red.shp"
+SLIC_rbuffer_stats_red = os.getcwd() + r"\29_SLIC_rbuffer_stats_red.shp"
 if not os.path.isfile(SLIC_rbuffer_stats_red):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_lbuffer_stats,
-                        "INPUT_LAYER_2": rbuffer_stats_red,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER":SLIC_rbuffer_stats_red})
+                      {"INPUT_LAYER": SLIC_lbuffer_stats,
+                       "INPUT_LAYER_2": rbuffer_stats_red,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_rbuffer_stats_red})
     print "--> Join attribute table of buffer statistics (right) with SLIC lines.\n"
 
-SLIC_lbuffer_stats_red = os.getcwd() + r"\28_SLIC_lbuffer_stats_red.shp"
+SLIC_lbuffer_stats_red = os.getcwd() + r"\30_SLIC_lbuffer_stats_red.shp"
 if not os.path.isfile(SLIC_lbuffer_stats_red):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_rbuffer_stats_red,
-                        "INPUT_LAYER_2": lbuffer_stats_red,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER": SLIC_lbuffer_stats_red})
+                      {"INPUT_LAYER": SLIC_rbuffer_stats_red,
+                       "INPUT_LAYER_2": lbuffer_stats_red,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_lbuffer_stats_red})
     print "--> Join attribute table of buffer statistics (left) with SLIC lines.\n"
 
 # green
-SLIC_rbuffer_stats_green = os.getcwd() + r"\29_SLIC_rbuffer_stats_green.shp"
+SLIC_rbuffer_stats_green = os.getcwd() + r"\31_SLIC_rbuffer_stats_green.shp"
 if not os.path.isfile(SLIC_rbuffer_stats_green):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_lbuffer_stats_red,
-                        "INPUT_LAYER_2": rbuffer_stats_green,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER":SLIC_rbuffer_stats_green})
+                      {"INPUT_LAYER": SLIC_lbuffer_stats_red,
+                       "INPUT_LAYER_2": rbuffer_stats_green,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_rbuffer_stats_green})
     print "--> Join attribute table of buffer statistics (right) with SLIC lines.\n"
 
-SLIC_lbuffer_stats_green = os.getcwd() + r"\30_SLIC_lbuffer_stats_green.shp"
+SLIC_lbuffer_stats_green = os.getcwd() + r"\32_SLIC_lbuffer_stats_green.shp"
 if not os.path.isfile(SLIC_lbuffer_stats_green):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_rbuffer_stats_green,
-                        "INPUT_LAYER_2": lbuffer_stats_green,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER": SLIC_lbuffer_stats_green})
+                      {"INPUT_LAYER": SLIC_rbuffer_stats_green,
+                       "INPUT_LAYER_2": lbuffer_stats_green,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_lbuffer_stats_green})
     print "--> Join attribute table of buffer statistics (left) with SLIC lines.\n"
 
 # blue
-SLIC_rbuffer_stats_blue = os.getcwd() + r"\31_SLIC_rbuffer_stats_blue.shp"
+SLIC_rbuffer_stats_blue = os.getcwd() + r"\33_SLIC_rbuffer_stats_blue.shp"
 if not os.path.isfile(SLIC_rbuffer_stats_blue):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_lbuffer_stats_green,
-                        "INPUT_LAYER_2": rbuffer_stats_blue,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER": SLIC_rbuffer_stats_blue})
+                      {"INPUT_LAYER": SLIC_lbuffer_stats_green,
+                       "INPUT_LAYER_2": rbuffer_stats_blue,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_rbuffer_stats_blue})
     print "--> Join attribute table of buffer statistics (right) with SLIC lines.\n"
 
-SLIC_lbuffer_stats_blue = os.getcwd() + r"\32_SLIC_lbuffer_stats_blue.shp"
+SLIC_lbuffer_stats_blue = os.getcwd() + r"\34_SLIC_lbuffer_stats_blue.shp"
 if not os.path.isfile(SLIC_lbuffer_stats_blue):
     processing.runalg('qgis:joinattributestable',
-                        {"INPUT_LAYER": SLIC_rbuffer_stats_blue,
-                        "INPUT_LAYER_2": lbuffer_stats_blue,
-                        "TABLE_FIELD": 'ID',
-                        "TABLE_FIELD_2": 'ID',
-                        "OUTPUT_LAYER": SLIC_lbuffer_stats_blue})
+                      {"INPUT_LAYER": SLIC_rbuffer_stats_blue,
+                       "INPUT_LAYER_2": lbuffer_stats_blue,
+                       "TABLE_FIELD": 'ID',
+                       "TABLE_FIELD_2": 'ID',
+                       "OUTPUT_LAYER": SLIC_lbuffer_stats_blue})
     print "--> Join attribute table of buffer statistics (left) with SLIC lines.\n"
 
 #########################
 ### Gradient measures ###
 #########################
-SLIC_red_gradient = os.getcwd() + r"\33_SLIC_red_gradient.shp"
+SLIC_red_gradient = os.getcwd() + r"\35_SLIC_red_gradient.shp"
 if not os.path.isfile(SLIC_red_gradient):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": SLIC_lbuffer_stats_blue,
@@ -640,7 +650,7 @@ if not os.path.isfile(SLIC_red_gradient):
                        "OUTPUT_LAYER": SLIC_red_gradient})
     print "--> Calculated gradient measure.\n"
 
-SLIC_green_gradient = os.getcwd() + r"\34_SLIC_green_gradient.shp"
+SLIC_green_gradient = os.getcwd() + r"\36_SLIC_green_gradient.shp"
 if not os.path.isfile(SLIC_green_gradient):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": SLIC_red_gradient,
@@ -651,7 +661,7 @@ if not os.path.isfile(SLIC_green_gradient):
                        "OUTPUT_LAYER": SLIC_green_gradient})
     print "--> Calculated gradient measure.\n"
 
-SLIC_blue_gradient = os.getcwd() + r"\35_SLIC_blue_gradient.shp"
+SLIC_blue_gradient = os.getcwd() + r"\37_SLIC_blue_gradient.shp"
 if not os.path.isfile(SLIC_blue_gradient):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": SLIC_green_gradient,
@@ -662,7 +672,7 @@ if not os.path.isfile(SLIC_blue_gradient):
                        "OUTPUT_LAYER": SLIC_blue_gradient})
     print "--> Calculated gradient measure.\n"
 
-SLIC_dsm_gradient = os.getcwd() + r"\36_SLIC_dsm_gradient.shp"
+SLIC_dsm_gradient = os.getcwd() + r"\38_SLIC_dsm_gradient.shp"
 if not os.path.isfile(SLIC_dsm_gradient):
     processing.runalg('qgis:fieldcalculator',
                       {"INPUT_LAYER": SLIC_blue_gradient,
@@ -681,7 +691,7 @@ layer = iface.addVectorLayer(SLIC_dsm_gradient, "SLIC_final", "ogr")
 
 accepted_attributes = {"ID", "length", "ucm_rgb", "lap_dsm", "dist_to_gP", "azimuth", "sinuosity", "azi_gPb",
                        "r_dsm_medi", "l_dsm_medi", "r_red_medi", "l_red_medi", "r_gre_medi", "l_gre_medi",
-                       "r_blu_medi", "l_blu_medi", "red_grad", "green_grad", "blue_grad", "dsm_grad" , "boundary"}
+                       "r_blu_medi", "l_blu_medi", "red_grad", "green_grad", "blue_grad", "dsm_grad", "boundary"}
 field_names = [field.name() for field in layer.fields()]
 
 with edit(layer):
@@ -692,7 +702,7 @@ with edit(layer):
 print "--> Columns deleted.\n"
 
 # Export attribute table as csv file
-SLIC_attr = os.getcwd() + r"\37_SLIC_attr.csv"
+SLIC_attr = os.getcwd() + r"\39_SLIC_attr.csv"
 if not os.path.isfile(SLIC_attr):
     QgsVectorFileWriter.writeAsVectorFormat(layer, SLIC_attr, "utf-8", None, "CSV")
     print "--> Attribute table exported.\n"
