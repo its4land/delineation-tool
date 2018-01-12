@@ -1,7 +1,6 @@
 """
 !/bin/python
 -*- coding: utf-8 -*
-QGIS Version: QGIS 2.16
 
 ### Author ###
  S. Crommelinck, 2017
