@@ -31,8 +31,6 @@ data_dir = r"D:\path to directory"
 ### Import required modules ###
 import qgis
 import os
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.utils import *
 from qgis.analysis import *
