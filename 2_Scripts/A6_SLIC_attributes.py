@@ -83,8 +83,6 @@ dsm_grad:           absolute value of difference between r_dsm_medi and l_dsm_me
 ### Import required modules ###
 import qgis
 import os
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.utils import *
 from qgis.analysis import *
