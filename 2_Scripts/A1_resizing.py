@@ -57,8 +57,6 @@ tiles = 2
 
 ### Import required QGIS modules ###
 # noinspection PyUnresolvedReferences
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.utils import *
 from qgis.analysis import *
