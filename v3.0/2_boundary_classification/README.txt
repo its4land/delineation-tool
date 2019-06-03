@@ -1,0 +1,1 @@
+Boundary classification can be done either with Random Forest Classification or Convolutional Neural Network Classification
