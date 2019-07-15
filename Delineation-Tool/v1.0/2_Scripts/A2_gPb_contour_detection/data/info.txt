@@ -1,1 +1,0 @@
-Paste here your UAV data (RGB and/or DSM) as .tif files and their .tfw files.
