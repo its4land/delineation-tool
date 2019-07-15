@@ -1,0 +1,1 @@
+This work was supported by the Horizon 2020 program of the European Union ([its4land](https://its4land.com/automate-it-wp5/), project number 687828). 
