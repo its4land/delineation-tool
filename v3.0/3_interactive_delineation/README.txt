@@ -4,6 +4,6 @@ https://plugins.qgis.org/plugins/BoundaryDelineation/
 The source code is available here:
 https://github.com/SCrommelinck/BoundaryDelineation
 
-Please refer to our wiki for a detailed manual for the interactive delineation:
+Instructions on how to apply interactive delineation can be found in the wiki:
 https://github.com/SCrommelinck/Delineation-Tool/wiki/3)-Interactive-Delineation
 
