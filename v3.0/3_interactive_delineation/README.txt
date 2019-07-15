@@ -1,11 +1,9 @@
 Interactive delineation is done with the QGIS plugin BoundaryDelineation:
 https://plugins.qgis.org/plugins/BoundaryDelineation/
 
+The source code is available here:
+https://github.com/SCrommelinck/BoundaryDelineation
+
 Please refer to our wiki for a detailed manual for the interactive delineation:
-[wiki](https://github.com/SCrommelinck/Delineation-Tool/wiki/3)-Interactive-Delineation)
-[wiki](https://github.com/SCrommelinck/Delineation-Tool/wiki)
+https://github.com/SCrommelinck/Delineation-Tool/wiki/3)-Interactive-Delineation
 
-[a relative link](References.md)
-[link](/../wiki/References.md)
-
-<a href="https://github.com/SCrommelinck/Delineation-Tool/wiki/3)-Interactive-Delineation"> link </a>
