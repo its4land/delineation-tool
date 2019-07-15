@@ -8,3 +8,4 @@ Please refer to our wiki for a detailed manual for the interactive delineation:
 [a relative link](References.md)
 [link](/../wiki/References.md)
 
+<a href="https://github.com/SCrommelinck/Delineation-Tool/wiki/3)-Interactive-Delineation">Quora profile link for Adam D'Angelo</a>
