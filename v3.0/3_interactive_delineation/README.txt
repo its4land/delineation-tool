@@ -9,5 +9,3 @@ https://github.com/SCrommelinck/Delineation-Tool/wiki/3)-Interactive-Delineation
 
 A video demonstrating the installation and use of the QGIS plugin BoundaryDelineation ca be found on YouTube:
 https://www.youtube.com/watch?v=GrDv8fW53Fs
-
-
