@@ -1,5 +1,7 @@
 # Delineation-Tool
-This reposiory contains contains source code and guidanceto apply our semi-automatic indirect surveying approach for cadastral mapping from remote sensing data. We advise to use the latest version (v3.0) only:
+This reposiory contains contains source code and guidanceto apply our semi-automatic indirect surveying approach for cadastral mapping from remote sensing data. 
+
+We advise to use the latest version (v3.0) only:
 
 https://github.com/SCrommelinck/Delineation-Tool/tree/master/v3.0
 
