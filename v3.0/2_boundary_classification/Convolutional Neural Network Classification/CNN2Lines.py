@@ -4,7 +4,7 @@
 
                               -------------------
         begin                : 2019-03-25
-        copyright            : (C) 2019 by Sophie Crommelinck
+        copyright            : (C) 2019 by Sophie Crommelinck, University of Twente
         email                : s.crommelinck@utwente.nl
         description          : this script takes probabilities of image tiles
                                 averages them based on its ID value and writes
