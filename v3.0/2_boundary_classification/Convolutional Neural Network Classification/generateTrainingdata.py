@@ -1,9 +1,27 @@
-#!/bin/python
 # -*- coding: utf-8 -*-
-# Description: this script loops over all features of given shapefile and saves clipped rasters around each line's
-# pixel according to its boundary label in a specific folder.
-# Author: Sophie Crommelinck
-#######################################################
+"""
+/***************************************************************************
+
+                              -------------------
+        begin                : 2019-03-25
+        copyright            : (C) 2019 by Sophie Crommelinck, University of Twente
+        email                : s.crommelinck@utwente.nl
+        description          : this script loops over all features of given shapefile 
+				and saves clipped rasters around each line's pixel 
+				according to its boundary label in a specific folder.
+        funding               H2020 EU project its4land (#687826, its4land.com)
+                                Work package 5: Automate It
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+"""
 
 # Import modules
 from numpy import *
