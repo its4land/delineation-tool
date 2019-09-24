@@ -5,7 +5,7 @@ its4land - Automate It
                                -------------------
         begin                : 2019-03-22
         git sha              : $Format:%H$
-        copyright            : (C) 2019 by Sophie Crommelinck
+        copyright            : (C) 2019 by Sophie Crommelinck, University of Twente
         email                : s.crommelinck@utwente.nl
         description          : this script applies transfer-learning on a
                                 pre-trained CNN to predict class
