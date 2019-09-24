@@ -7,7 +7,8 @@
                               -------------------
         begin                : 2018-05-23
         git sha              : $Format:%H$
-        copyright            : (C) 2018 by Sophie Crommelinck, University of Twente
+        copyright            : (C) 2018 by Sophie Crommelinck, 
+                               University of Twente
         email                : s.crommelinck@utwente.nl
         development          : Reiner Borchert, Hansa Luftbild AG Münster
         email                : borchert@hansaluftbild.de
