@@ -1,38 +1,36 @@
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- its4land WP5: Automate It
-                              -------------------
-        begin                : 2018-05-23
-        git sha              : $Format:%H$
-        copyright            : (C) 2018 by Sophie Crommelinck, 
-                               University of Twente
-        email                : s.crommelinck@utwente.nl
-        development          : Reiner Borchert, Hansa Luftbild AG Münster
-        email                : borchert@hansaluftbild.de
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
 """
 !/bin/python
--*- coding: utf-8 -*
-
-### Author ###
- S. Crommelinck, Reiner Borchert, 2018
-
-### Description ###
- abstract base class for processing
+-*- coding: utf-8 -*-
+/*****************************************************************************
+        begin                : 2018-05-23
+        copyright            : (C) 2019 by Sophie Crommelinck, 
+                                University of Twente
+        email                : s.crommelinck@utwente.nl
+        description          : abstract base class for processing
+        funding              : H2020 EU project its4land 
+                                (#687826, its4land.com)
+                                Work package 5: Automate It
+		      development          : Reiner Borchert, Hansa Luftbild AG Münster
+        email                : borchert@hansaluftbild.de
+ *****************************************************************************/
+ 
+ /*****************************************************************************
+ *    This program is free software: you can redistribute it and/or modify    *
+ *    it under the terms of the GNU General Public License as published by    *
+ *    the Free Software Foundation, either version 3 of the License, or       *
+ *    (at your option) any later version.                                     *
+ *                                                                            *
+ *    This program is distributed in the hope that it will be useful,         *
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+ *    GNU General Public License for more details.                            *
+ *                                                                            *
+ *    You should have received a copy of the GNU General Public License       *
+ *    along with this program.  If not, see <https://www.gnu.org/licenses/>.  *
+  *****************************************************************************/
 """
 
+# Import modules
 from osgeo import ogr, gdal
 from sqlalchemy import MetaData, Table, Column, create_engine, select, update, insert
 from geoalchemy2.functions import ST_AsGeoJSON
