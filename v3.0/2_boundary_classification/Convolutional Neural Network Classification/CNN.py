@@ -12,8 +12,7 @@
         funding              : H2020 EU project its4land 
                                 (#687826, its4land.com)
                                 Work package 5: Automate It
-	development          : Reiner Borchert, Hansa Luftbild AG Münster
-        email                : borchert@hansaluftbild.de
+	development          : Sophie Crommelinck
  *****************************************************************************/
  
  /*****************************************************************************
