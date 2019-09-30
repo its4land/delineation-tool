@@ -20,3 +20,6 @@ https://its4land.com/automate-it-wp5/
 
 ### Acknoweledgments
 This work was supported by the Horizon 2020 program (project number 687828) of the European Union.
+
+### License
+This work is licensed under the GNU General Public License: https://github.com/SCrommelinck/Delineation-Tool/blob/master/v3.0/LICENSE

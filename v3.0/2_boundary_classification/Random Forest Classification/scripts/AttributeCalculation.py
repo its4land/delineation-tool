@@ -1,30 +1,39 @@
 """
 !/bin/python
--*- coding: utf-8 -*
-
-/***************************************************************************
- its4land WP5: Automate It
-                              -------------------
+-*- coding: utf-8 -*-
+/*****************************************************************************
         begin                : 2018-05-23
-        git sha              : $Format:%H$
-        copyright            : (C) 2018 by Sophie Crommelinck
+        copyright            : (C) 2019 by Sophie Crommelinck, 
+                                University of Twente
         email                : s.crommelinck@utwente.nl
+        description          : This script calculates attributes per line 
+                               segment by taking into account information from 
+                               each line’s geometry as well as information 
+                               from underlying raster data (RGB and DSM).
+        funding              : H2020 EU project its4land 
+                                (#687826, its4land.com)
+                                Work package 5: Automate It
         development          : Reiner Borchert, Hansa Luftbild AG Münster
         email                : borchert@hansaluftbild.de
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+ *****************************************************************************/
+ 
+ /*****************************************************************************
+ *    This program is free software: you can redistribute it and/or modify    *
+ *    it under the terms of the GNU General Public License as published by    *
+ *    the Free Software Foundation, either version 3 of the License, or       *
+ *    (at your option) any later version.                                     *
+ *                                                                            *
+ *    This program is distributed in the hope that it will be useful,         *
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+ *    GNU General Public License for more details.                            *
+ *                                                                            *
+ *    You should have received a copy of the GNU General Public License       *
+ *    along with this program.  If not, see <https://www.gnu.org/licenses/>.  *
+  *****************************************************************************/
 """
+
 """
-
-
 ### Description ###
  This script calculates attributes per line segment by taking into account information from each line’s
  geometry as well as information from underlying raster data (RGB and DSM).
