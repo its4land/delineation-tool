@@ -1,7 +1,7 @@
 # Delineation-Tool
 This reposiory contains contains source code and guidanceto apply our semi-automatic indirect surveying approach for cadastral mapping from remote sensing data. We advise to use the latest version (v3.0) only:
 
-https://github.com/SCrommelinck/Delineation-Tool/tree/master/v3.0
+https://github.com/its4land/delineation-tool/tree/master/v3.0
 
 ### Workflow
 The delineation tool consists of three steps:
@@ -11,7 +11,7 @@ The delineation tool consists of three steps:
 
 ### Usage
 Our wiki provides detailed guidance on how to apply each workflow step:
-https://github.com/SCrommelinck/Delineation-Tool/wiki
+https://github.com/its4land/delineation-tool/wiki
 
 ### References
 https://its4land.com/automate-it-wp5/
